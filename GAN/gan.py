@@ -1,19 +1,31 @@
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+from generator import Generator
+from discriminator import Discriminator
 
 
-class Gan():
+def weights_init(model):
+    classname = model.__class__.__name__
+
+    if classname.find("Conv") != -1:
+        nn.init.normal_(model.weight.data, 0.0, 0.02)
+
+    elif classname.find("BatchNorm") != -1:
+        nn.init.normal_(model.weight.data, 1.0, 0.02)
+        nn.init.constant_(model.bias.data, 0)
+
+
+class Gan:
     def __init__(self, generator, discriminator, dataloader, batch_size=32, latent_space_size=100):
         # Decide which device we want to run on
-        device = "cpu"
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = torch.device(device)
 
         # Initiate
         self.device = device
-        self.generator = generator.to(device=self.device)
-        self.discriminator = discriminator.to(device=self.device)
+        self.generator = generator.apply(weights_init).to(device=self.device)  # Fix
+        self.discriminator = discriminator.apply(weights_init).to(device=self.device)  # Fix
         self.dataloader = dataloader
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
@@ -21,78 +33,85 @@ class Gan():
     def init_train_conditions(self):
         # Hyperparameters
         lr = 0.0002
-        num_epochs = 200
+        epochs = 20
+        episodes = len(self.dataloader)
+
+        # Loss functions and optimizers
         loss = torch.nn.BCELoss().to(self.device)
-        batches = len(self.dataloader)
-        print(f'batches: {batches}')
+        disc_optim = torch.optim.Adam(self.discriminator.parameters(), lr=lr,
+                                      betas=(0.5, 0.999), weight_decay=0.0002 / epochs)
+        gen_optim = torch.optim.Adam(self.generator.parameters(), lr=lr,
+                                     betas=(0.5, 0.999), weight_decay=0.0002 / epochs)
 
-        self.discriminator.train()
-        self.generator.train()
+        # Training variables
+        noise_seed = torch.randn(256, 100, 1, 1, device=self.device)
+        real = 1
+        fake = 0
 
-        return lr, num_epochs, loss, batches
+        print(f'episodes: {episodes}')
+
+        return lr, epochs, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake
 
     def train(self):
-        # Hyperparameters
-        lr, num_epochs, loss, batches = self.init_train_conditions()
+        # Initiate Training Conditions
+        lr, epochs, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake = self.init_train_conditions()
 
-        discriminator_optim = torch.optim.Adam(self.discriminator.parameters(), lr=lr)
-        generator_optim = torch.optim.Adam(self.generator.parameters(), lr=lr)
+        # Training
+        for epoch in range(epochs):
+            print(f'Epoch {epoch + 1} of {epochs} initialized')
 
-        for i, (real_img, _) in enumerate(self.dataloader):
-            real_img = real_img.to(self.device)
-            label_size = real_img.size(0)
+            gen_loss = 0
+            disc_loss = 0
 
-            # Labels for real and fake images
-            real_imgs_label = torch.full([label_size, 1, 1, 1], 1.0, dtype=real_img.dtype, device=self.device)
-            fake_imgs_label = torch.full([label_size, 1, 1, 1], 0.0, dtype=real_img.dtype, device=self.device)
+            for batch in self.dataloader:
+                # Discriminate real samples and calculate loss
+                self.discriminator.zero_grad()
+                real_samples = batch[0].to(self.device)
+                real_labels = torch.full((self.batch_size,), real, dtype=torch.float, device=self.device)
 
-            # Random noise vector
-            vec = torch.randn([label_size, 100, 1, 1], device=self.device)
+                pred_real = self.discriminator(real_samples).view(-1)
+                error_real = loss(pred_real, real_labels[:len(pred_real)])
 
-            # ---- TRAINING DISCRIMINATOR ----
-            # Reset discriminator gradient
-            self.discriminator.zero_grad()
+                error_real.backward()
 
-            # Predicate using discriminator on real image
-            pred = self.discriminator(real_img)
-            discriminator_loss_real = loss(pred, real_imgs_label)
-            discriminator_loss_real.backward()
-            discriminator_real = pred.mean().item()
+                # Discriminate fake samples and calculate loss
+                latent_vector = torch.rand(self.batch_size, self.latent_space_size, 1, 1, device=self.device)
+                fake_samples = self.generator(latent_vector)
+                fake_labels = torch.full((self.batch_size,), fake, dtype=torch.float, device=self.device)
 
-            # Predicate using discriminator on a fake image from the generator
-            fake_img = self.generator(vec)
-            pred = self.discriminator(fake_img.detach())
-            discriminator_loss_fake = loss(pred, fake_imgs_label)
-            discriminator_loss_fake.backward()
-            discriminator_fake1 = pred.mean().item()
+                pred_fake = self.discriminator(fake_samples.detach()).view(-1)
+                error_fake = loss(pred_fake, fake_labels)
+                error_fake.backward()
 
-            # Add losses to complete loss equation, update weights
-            discriminator_loss = discriminator_loss_real + discriminator_loss_fake
-            discriminator_optim.step()
+                # Calculate total discriminator loss
+                disc_batch_loss = error_real + error_fake
+                disc_optim.step()
 
-            # ---- TRAINING GENERATOR ----
-            # Reset generator gradient
-            self.generator.zero_grad()
+                # Generate fake samples and calculate loss
+                self.generator.zero_grad()
+                pred_fake = self.discriminator(fake_samples).view(-1)
 
-            # Discriminator predicates fake image
-            pred = self.discriminator(fake_img)
-            generator_loss = loss(pred, real_imgs_label)
+                gen_batch_loss = loss(pred_fake, real_labels)
 
-            # Update weights
-            generator_loss.backward()
-            generator_optim.step()
-            discriminator_fake2 = pred.mean().item()
+                gen_batch_loss.backward()
+                gen_optim.step()
 
-            if (i + 1) % 100 == 0 or (i + 1) == batches:
-                print(f"Train stage: adversarial "
-                      f"D Loss: {discriminator_loss.item():.6f} G Loss: {generator_loss.item():.6f} "
-                      f"D(Real): {discriminator_real:.6f} D(Fake1)/D(Fake2): {discriminator_fake1:.6f}/{discriminator_fake2:.6f}.")
-                fig = plt.figure()
-                sample_img = self.generator(vec)
-                for j in range(sample_img.size(0)):
-                    plt.imshow(sample_img.detach()[j, 0, :, :], cmap='gray_r', interpolation='none')
+                gen_loss += gen_batch_loss
+                disc_loss += disc_batch_loss
+
+            print(f'Epoch {epoch + 1} - Generator loss: {gen_loss / episodes},'
+                  f' Discriminator loss: {disc_loss / episodes}')
+
+            # Log and print image every other epoch
+            if (epoch + 1) % 2 == 0:
+                self.generator.eval()
+                images = self.generator(noise_seed)
+
+                for i in range(images.size(0)):
+                    plt.imshow(images.detach()[i, 0, :, :], interpolation='none')
                     plt.title("Generated data")
                     plt.xticks([])
                     plt.yticks([])
                     plt.axis('off')
                 plt.show()
+                self.generator.train()
