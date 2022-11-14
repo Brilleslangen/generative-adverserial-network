@@ -1,3 +1,5 @@
+import sys
+
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -12,17 +14,6 @@ def weights_init(model):
     elif classname.find("BatchNorm") != -1:
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
-
-
-# Print iterations progress
-def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r"):
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=print_end)
-
-    if iteration == total:
-        print()
 
 
 class Gan:
@@ -67,11 +58,8 @@ class Gan:
         # Initiate Training Conditions
         lr, epochs, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake = self.init_train_conditions()
 
-        print_progress_bar(0, episodes, prefix='Progress:', suffix='Complete', length=50)
-
         # Training
         for epoch in range(epochs):
-            print(f'Epoch {epoch + 1} of {epochs} initialized')
 
             gen_loss = 0
             disc_loss = 0
@@ -116,9 +104,10 @@ class Gan:
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
 
-                print_progress_bar(i + 1, episodes, prefix='Progress:', suffix='Complete', length=50)
+                if i % (episodes // 100) == 0:
+                    sys.stdout.write(f'\rEpoch {epoch + 1}: {(i * 100) // episodes}%')
 
-            print(f'Epoch {epoch + 1} - Generator loss: {gen_loss / episodes},'
+            print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
             # Print image every other epoch
