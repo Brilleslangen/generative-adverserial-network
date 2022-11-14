@@ -7,11 +7,6 @@ from gan import Gan
 from discriminator import Discriminator
 from generator import Generator
 
-# Import GAN modules
-import sys
-
-sys.path.append('./../GAN')
-
 # Latent vector size
 ls_size = 100
 

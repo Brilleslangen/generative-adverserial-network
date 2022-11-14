@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from generator import Generator
-from discriminator import Discriminator
 
 
 def weights_init(model):
@@ -16,6 +14,17 @@ def weights_init(model):
         nn.init.constant_(model.bias.data, 0)
 
 
+# Print iterations progress
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r"):
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=print_end)
+
+    if iteration == total:
+        print()
+
+
 class Gan:
     def __init__(self, generator, discriminator, dataloader, batch_size=32, latent_space_size=100):
         # Decide which device we want to run on
@@ -24,14 +33,16 @@ class Gan:
 
         # Initiate
         self.device = device
-        self.generator = generator.apply(weights_init).to(device=self.device)  # Fix
-        self.discriminator = discriminator.apply(weights_init).to(device=self.device)  # Fix
+        self.generator = generator.apply(weights_init)
+        self.generator.to(device=self.device)  # Fix
+        self.discriminator = discriminator.apply(weights_init)
+        self.discriminator.to(device=self.device)
         self.dataloader = dataloader
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
 
     def init_train_conditions(self):
-        # Hyperparameters
+        # Hyper parameters
         lr = 0.0002
         epochs = 20
         episodes = len(self.dataloader)
@@ -44,17 +55,19 @@ class Gan:
                                      betas=(0.5, 0.999), weight_decay=0.0002 / epochs)
 
         # Training variables
-        noise_seed = torch.randn(256, 100, 1, 1, device=self.device)
+        benchmark_seed = torch.randn(256, 100, 1, 1, device=self.device)
         real = 1
         fake = 0
 
         print(f'episodes: {episodes}')
 
-        return lr, epochs, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake
+        return lr, epochs, episodes, loss, disc_optim, gen_optim, benchmark_seed, real, fake
 
     def train(self):
         # Initiate Training Conditions
         lr, epochs, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake = self.init_train_conditions()
+
+        print_progress_bar(0, episodes, prefix='Progress:', suffix='Complete', length=50)
 
         # Training
         for epoch in range(epochs):
@@ -63,21 +76,25 @@ class Gan:
             gen_loss = 0
             disc_loss = 0
 
-            for batch in self.dataloader:
-                # Discriminate real samples and calculate loss
+            for i, batch in enumerate(self.dataloader):
+                # Get batch of real images
                 self.discriminator.zero_grad()
                 real_samples = batch[0].to(self.device)
-                real_labels = torch.full((self.batch_size,), real, dtype=torch.float, device=self.device)
+                sample_size = len(real_samples)
 
+                # Create real and fake labels
+                real_labels = torch.full((sample_size,), real, dtype=torch.float, device=self.device)
+                fake_labels = torch.full((sample_size,), fake, dtype=torch.float, device=self.device)
+
+                # Discriminate real samples and calculate loss
                 pred_real = self.discriminator(real_samples).view(-1)
-                error_real = loss(pred_real, real_labels[:len(pred_real)])
+                error_real = loss(pred_real, real_labels)
 
                 error_real.backward()
 
                 # Discriminate fake samples and calculate loss
-                latent_vector = torch.rand(self.batch_size, self.latent_space_size, 1, 1, device=self.device)
+                latent_vector = torch.randn(sample_size, self.latent_space_size, 1, 1, device=self.device)
                 fake_samples = self.generator(latent_vector)
-                fake_labels = torch.full((self.batch_size,), fake, dtype=torch.float, device=self.device)
 
                 pred_fake = self.discriminator(fake_samples.detach()).view(-1)
                 error_fake = loss(pred_fake, fake_labels)
@@ -92,23 +109,25 @@ class Gan:
                 pred_fake = self.discriminator(fake_samples).view(-1)
 
                 gen_batch_loss = loss(pred_fake, real_labels)
-
                 gen_batch_loss.backward()
+
                 gen_optim.step()
 
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
 
+                print_progress_bar(i + 1, episodes, prefix='Progress:', suffix='Complete', length=50)
+
             print(f'Epoch {epoch + 1} - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
-            # Log and print image every other epoch
+            # Print image every other epoch
             if (epoch + 1) % 2 == 0:
                 self.generator.eval()
                 images = self.generator(noise_seed)
 
                 for i in range(images.size(0)):
-                    plt.imshow(images.detach()[i, 0, :, :], interpolation='none')
+                    plt.imshow(images.detach().cpu()[i, 0, :, :], interpolation='none')
                     plt.title("Generated data")
                     plt.xticks([])
                     plt.yticks([])
