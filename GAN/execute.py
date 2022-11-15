@@ -1,6 +1,10 @@
 import torch
+import numpy as np
+import torchvision
 import torchvision.transforms as transforms
-from torchvision.datasets import MNIST
+import torchvision.utils as vutils
+from matplotlib import pyplot as plt
+from torchvision.datasets import MNIST, ImageFolder
 from torch.utils.data import DataLoader
 
 from gan import Gan
@@ -19,28 +23,41 @@ fm_size = 64
 # Number of channels in image
 num_img_chan = 1
 
-dataTransforms = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(0.5, 0.5)]
-)
+# Conv layers
+num_layers = 3
 
-# load the MNIST dataset and stack the training and testing data
-# points so we have additional training data
-print("[INFO] loading MNIST dataset...")
-trainData = MNIST(root="data", train=True, download=True,
-                  transform=dataTransforms)
-testData = MNIST(root="data", train=False, download=True,
-                 transform=dataTransforms)
-data = torch.utils.data.ConcatDataset((trainData, testData))
-# initialize our dataloader
-dataloader = DataLoader(data, shuffle=True,
-                        batch_size=batch_size)
+# Load data
+datasets = ['mnist', 'abstract-art']
+set_type = datasets[0]
+dataset = ""
+
+if set_type == datasets[0]:
+    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+                                    transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+    dataset = torchvision.datasets.MNIST(root=".", train=True, download=True, transform=transform)
+
+elif set_type == datasets[1]:
+    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+                                    transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
+    dataset = ImageFolder(root="../abstract-art/Abstract_gallery", transform=transform)
+    num_img_chan = 3
+
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+# Set batch
+real_batch = next(iter(dataloader))
+
+# Display images
+plt.figure(figsize=(8, 8))
+plt.axis("off")
+plt.title("Training Images")
+plt.imshow(np.transpose(vutils.make_grid(real_batch[0][:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
 
 # Initiate Discriminator and Discriminator
-generator = Generator(ls_size, num_img_chan)
-discriminator = Discriminator(depth=1)
+generator = Generator(ls_size, fm_size, num_img_chan, num_layers=num_layers)
+discriminator = Discriminator(fm_size, num_img_chan)
 
-# Initiate Generative Adverserial Network
+# Initiate Generative Adversarial Network
 # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
 gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
 gan.train()

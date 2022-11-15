@@ -24,10 +24,8 @@ class Gan:
 
         # Initiate
         self.device = device
-        self.generator = generator.apply(weights_init)
-        self.generator.to(device=self.device)  # Fix
-        self.discriminator = discriminator.apply(weights_init)
-        self.discriminator.to(device=self.device)
+        self.generator = generator.apply(weights_init).to(device=self.device)
+        self.discriminator = discriminator.apply(weights_init).to(device=self.device)
         self.dataloader = dataloader
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
@@ -77,7 +75,6 @@ class Gan:
                 # Discriminate real samples and calculate loss
                 pred_real = self.discriminator(real_samples).view(-1)
                 error_real = loss(pred_real, real_labels)
-
                 error_real.backward()
 
                 # Discriminate fake samples and calculate loss
