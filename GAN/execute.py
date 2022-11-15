@@ -54,8 +54,8 @@ plt.title("Training Images")
 plt.imshow(np.transpose(vutils.make_grid(real_batch[0][:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
 
 # Initiate Discriminator and Discriminator
-generator = Generator(ls_size, fm_size, num_img_chan, num_layers=num_layers)
-discriminator = Discriminator(fm_size, num_img_chan)
+generator = Generator(ls_size, fm_size, num_img_chan, num_layers)
+discriminator = Discriminator(fm_size, num_img_chan, num_layers)
 
 # Initiate Generative Adversarial Network
 # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
