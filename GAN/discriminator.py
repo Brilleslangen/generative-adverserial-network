@@ -31,7 +31,7 @@ class Discriminator(nn.Module):
 
         # Final convolution layer with sigmoid
         modules[f'L{num_channels+2}-conv'] = nn.Conv2d(
-            in_channels=fm_size * 2 ** (num_channels),
+            in_channels=fm_size * 2 ** num_channels,
             out_channels=1,
             kernel_size=4,
             stride=1,
