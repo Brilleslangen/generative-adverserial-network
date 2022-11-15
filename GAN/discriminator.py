@@ -42,6 +42,5 @@ class Discriminator(nn.Module):
 
         self.model = nn.Sequential(modules)
 
-        print(self.model)
     def forward(self, input):
         return self.model(input)
