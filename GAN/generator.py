@@ -3,12 +3,13 @@ from traitlets.config.application import OrderedDict
 
 
 class Generator(nn.Module):
-    def __init__(self, latent_space_size, image_size, num_image_chan, num_layers):
+    def __init__(self, latent_space_size, image_size, num_image_chan, num_conv_layers):
         super().__init__()
         modules = OrderedDict()
 
         # Initialize number of filters for each layer
-        feature_map_sizes = [image_size * 2 ** (i + 1) for i in range(num_layers, -2, -1)]
+        feature_map_sizes = [image_size * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
+        print(feature_map_sizes)
 
         # Initialize Latent Vector Space
         modules['LS-conv'] = nn.ConvTranspose2d(
@@ -22,7 +23,7 @@ class Generator(nn.Module):
         modules['LS-relu'] = nn.ReLU(True)
 
         # Apply Transposed Convolution for each Conv-module
-        for i in range(len(feature_map_sizes) - 2):
+        for i in range(len(feature_map_sizes) - 1):
             print(f"in: {feature_map_sizes[i]}, out: {feature_map_sizes[i + 1]}")
             modules[f'L{i}-conv'] = nn.ConvTranspose2d(
                 in_channels=feature_map_sizes[i],
@@ -36,7 +37,7 @@ class Generator(nn.Module):
 
         # Generate output image
         modules['Output'] = nn.ConvTranspose2d(
-            in_channels=feature_map_sizes[-2],
+            in_channels=feature_map_sizes[-1],
             out_channels=num_image_chan,
             kernel_size=4,
             stride=2,

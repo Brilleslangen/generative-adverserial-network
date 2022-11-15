@@ -102,7 +102,7 @@ class Gan:
                 disc_loss += disc_batch_loss
 
                 if i % (episodes // 100) == 0:
-                    sys.stdout.write(f'\rEpoch {epoch + 1}: {(i * 100) // episodes}%')
+                    sys.stdout.write(f'\rEpoch {epoch + 1}: {((i+1) * 100) // episodes}%')
 
             print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')

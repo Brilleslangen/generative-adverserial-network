@@ -24,7 +24,7 @@ fm_size = 64
 num_img_chan = 1
 
 # Conv layers
-num_layers = 3
+num_conv_layers = 3
 
 # Load data
 datasets = ['mnist', 'abstract-art']
@@ -54,7 +54,7 @@ plt.title("Training Images")
 plt.imshow(np.transpose(vutils.make_grid(real_batch[0][:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
 
 # Initiate Discriminator and Discriminator
-generator = Generator(ls_size, fm_size, num_img_chan, num_layers=num_layers)
+generator = Generator(ls_size, fm_size, num_img_chan, num_conv_layers=num_conv_layers)
 discriminator = Discriminator(fm_size, num_img_chan)
 
 # Initiate Generative Adversarial Network
