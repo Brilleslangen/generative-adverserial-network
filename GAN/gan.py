@@ -1,5 +1,6 @@
 import sys
-
+import numpy as np
+import torchvision.utils as tvutils
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -14,6 +15,15 @@ def weights_init(model):
     elif classname.find("BatchNorm") != -1:
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
+
+
+def display_images(images):
+    fig = plt.figure(figsize=(12, 12))
+    plt.axis("off")
+    plt.title("Training Images")
+    plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
+    plt.show()
+    plt.close(fig)
 
 
 class Gan:
@@ -101,22 +111,15 @@ class Gan:
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
 
-                if i % (episodes // 100) == 0:
-                    sys.stdout.write(f'\rEpoch {epoch + 1}: {((i+1) * 100) // episodes}%')
+                if i % (round(episodes / 100)) == 0:
+                    sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
 
             print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
             # Print image every other epoch
-            if (epoch + 1) % 2 == 0:
-                self.generator.eval()
-                images = self.generator(noise_seed)
+            self.generator.eval()
+            images = self.generator(noise_seed)
+            display_images(images)
+            self.generator.train()                 
 
-                for i in range(images.size(0)):
-                    plt.imshow(images.detach().cpu()[i, 0, :, :], interpolation='none')
-                    plt.title("Generated data")
-                    plt.xticks([])
-                    plt.yticks([])
-                    plt.axis('off')
-                plt.show()
-                self.generator.train()

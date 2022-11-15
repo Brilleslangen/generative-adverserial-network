@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from torchvision.datasets import MNIST, ImageFolder
 from torch.utils.data import DataLoader
 
-from gan import Gan
+from gan import Gan, display_images
 from discriminator import Discriminator
 from generator import Generator
 
@@ -15,10 +15,10 @@ from generator import Generator
 ls_size = 100
 
 # Training batch size
-batch_size = 32
+batch_size = 64
 
 # Feature map size for generator and discriminator
-fm_size = 64
+fm_size = 32
 
 # Number of channels in image
 num_img_chan = 1
@@ -48,10 +48,7 @@ dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 real_batch = next(iter(dataloader))
 
 # Display images
-plt.figure(figsize=(8, 8))
-plt.axis("off")
-plt.title("Training Images")
-plt.imshow(np.transpose(vutils.make_grid(real_batch[0][:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
+display_images(real_batch[0])
 
 # Initiate Discriminator and Discriminator
 generator = Generator(ls_size, fm_size, num_img_chan, num_conv_layers)

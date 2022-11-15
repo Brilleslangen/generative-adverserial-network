@@ -24,7 +24,7 @@ class Generator(nn.Module):
 
         # Apply Transposed Convolution for each Conv-module
         for i in range(len(feature_map_sizes) - 1):
-            print(f"in: {feature_map_sizes[i]}, out: {feature_map_sizes[i + 1]}")
+            # print(f"in: {feature_map_sizes[i]}, out: {feature_map_sizes[i + 1]}") # Debugging
             modules[f'L{i}-conv'] = nn.ConvTranspose2d(
                 in_channels=feature_map_sizes[i],
                 out_channels=feature_map_sizes[i + 1],
