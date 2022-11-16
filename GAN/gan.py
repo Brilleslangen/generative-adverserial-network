@@ -47,7 +47,7 @@ class Gan:
     def init_train_conditions(self):
         # Hyper parameters
         lr = 0.0002
-        epochs = 2000
+        epochs = 5
         episodes = len(self.dataloader)
 
         # Loss functions and optimizers
@@ -114,6 +114,17 @@ class Gan:
 
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
+                
+                
+                # Save model
+                PATH = "model.pt"
+                
+                torch.save({
+                    'discriminator_state' : self.discriminator.state_dict(),
+                    'generator_state' : self.generator.state_dict(),
+                    'disc_optim' : disc_optim.state_dict(),
+                    'gen_optim' : gen_optim.state_dict(),
+                }, PATH)
 
                 if i % (math.ceil(episodes / 100)) == 0:
                     sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
