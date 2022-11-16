@@ -23,9 +23,9 @@ def display_images(images, filename=None):
     plt.axis("off")
     plt.title(f'{filename}')
     plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    if filename == None:
+    if filename is None:
         plt.show()
-    else: 
+    else:
         plt.savefig(f'{filename}.png', bbox_inches='tight')
     plt.close(fig)
 
@@ -121,10 +121,9 @@ class Gan:
             print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
-            # Print image every other epoch
+            # Print image every tenth epoch
             if (epoch + 1) % 10 == 0:
                 self.generator.eval()
                 images = self.generator(noise_seed)
                 display_images(images, f'./Results/abstract-art-epoch-{epoch + 1}')
-                self.generator.train()                 
-
+                self.generator.train()

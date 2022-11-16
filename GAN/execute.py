@@ -1,10 +1,8 @@
-import torch
-import numpy as np
+import opendatasets as od
 import torchvision
+import os
 import torchvision.transforms as transforms
-import torchvision.utils as vutils
-from matplotlib import pyplot as plt
-from torchvision.datasets import MNIST, ImageFolder
+from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
 from gan import Gan, display_images
@@ -20,35 +18,52 @@ batch_size = 32
 # Feature map size for generator and discriminator
 fm_size = 64
 
-# Number of channels in image
-num_img_chan = 3
-
 # Conv layers
 num_conv_layers = 3
 
-# Load data
-datasets = ['mnist', 'abstract-art']
-set_type = datasets[2]
-dataset = ""
+# Available datasets
+datasets = ['mnist numbers', 'abstract art', 'bored apes yacht club']
 
-if set_type == datasets[0]:
+
+def select_dataset(dataset_index):
+    # Load data
+    ds_root = "./datasets"
+    set_type = datasets[dataset_index]
+    dataset = None
+
+    # 1 channel datasets
+    if set_type == datasets[0]:
+        channels = 1
+        transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+                                        transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+        dataset = torchvision.datasets.MNIST(root=ds_root, train=True, download=True, transform=transform)
+
+        return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
+
+    # 3 channel-datasets
+    channels = 3
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
-                                    transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-    dataset = torchvision.datasets.MNIST(root=".", train=True, download=True, transform=transform)
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
 
-elif set_type == datasets[1]:
-    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
-                                    transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
-    dataset = ImageFolder(root="./abstract-art/Abstract_gallery", transform=transform)
-    num_img_chan = 3
+    if set_type == datasets[1]:
+        directory = f'{ds_root}/abstract-art-gallery'
+        if not os.path.isdir(directory):
+            od.download("https://www.kaggle.com/datasets/bryanb/abstract-art-gallery", data_dir=ds_root)
+        dataset = ImageFolder(root=f'{directory}/Abstract_gallery', transform=transform)
 
-elif set_type == datasets[2]:
-    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
-                                    transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
-    dataset = ImageFolder(root="./bayc", transform=transform)
-    num_img_chan = 3
+    elif set_type == datasets[2]:
+        directory = f'{ds_root}/bored-apes-yacht-club'
+        if not os.path.isdir(directory):
+            od.download("https://www.kaggle.com/datasets/stanleyjzheng/bored-apes-yacht-club", data_dir=ds_root)
+        dataset = ImageFolder(root=f'{directory}', transform=transform)
 
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
+
+
+# Select dataset
+dataloader, color_channels = select_dataset(0)
+
 
 # Set batch
 real_batch = next(iter(dataloader))
@@ -57,8 +72,8 @@ real_batch = next(iter(dataloader))
 display_images(real_batch[0])
 
 # Initiate Discriminator and Discriminator
-generator = Generator(ls_size, fm_size, num_img_chan, num_conv_layers)
-discriminator = Discriminator(fm_size, num_img_chan, num_conv_layers)
+generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
+discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
 # Initiate Generative Adversarial Network
 # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
