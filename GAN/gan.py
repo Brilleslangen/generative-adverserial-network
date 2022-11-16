@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import math
+import os
 
 
 def weights_init(model):
@@ -18,20 +19,26 @@ def weights_init(model):
         nn.init.constant_(model.bias.data, 0)
 
 
-def display_images(images, filename=None):
+def display_images(images, directory=None,  filename=None):
     fig = plt.figure(figsize=(12, 12))
     plt.axis("off")
     plt.title(f'{filename}')
     plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    if filename == None:
+    if filename is None or directory is None:
         plt.show()
-    else: 
-        plt.savefig(f'{filename}.png', bbox_inches='tight')
+    else:
+        if not os.path.isdir('./results'):
+            os.mkdir('./results')
+        directory = f'./results/{directory}'
+        if not os.path.isdir(directory):
+            os.mkdir(directory)
+        plt.savefig(f'{directory}/{filename}.png', bbox_inches='tight')
     plt.close(fig)
 
 
 class Gan:
-    def __init__(self, generator, discriminator, dataloader, batch_size=32, latent_space_size=100):
+    def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
+                 batch_size=32, latent_space_size=100):
         # Decide which device we want to run on
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
@@ -43,6 +50,8 @@ class Gan:
         self.dataloader = dataloader
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
+        self.ds_name = ds_name
+        self.display_frequency = display_frequency
 
     def init_train_conditions(self):
         # Hyper parameters
@@ -132,10 +141,9 @@ class Gan:
             print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
-            # Print image every other epoch
-            if (epoch + 1) % 10 == 0:
+            # Print image every tenth epoch
+            if (epoch + 1) % self.display_frequency == 0:
                 self.generator.eval()
                 images = self.generator(noise_seed)
-                display_images(images, f'./Results/abstract-art-epoch-{epoch + 1}')
-                self.generator.train()                 
-
+                display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
+                self.generator.train()

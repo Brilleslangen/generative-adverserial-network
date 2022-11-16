@@ -2,6 +2,12 @@
 bayc/
 abstract-art/
 GAN/__pycache__/
+datasets/
+GAN/datasets/
+results/
+GAN/results/
+kaggle.json
+
 
 
 
