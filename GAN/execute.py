@@ -22,7 +22,7 @@ fm_size = 64
 num_conv_layers = 3
 
 # Available datasets
-datasets = ['mnist numbers', 'abstract art', 'bored apes yacht club']
+datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club']
 
 
 def select_dataset(set_name):

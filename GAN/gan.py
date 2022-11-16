@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import math
+import os
 
 
 def weights_init(model):
@@ -26,6 +27,9 @@ def display_images(images, directory=None,  filename=None):
     if filename is None or directory is None:
         plt.show()
     else:
+        directory = f'./results/{directory}'
+        if not os.path.isdir(directory):
+            os.mkdir(directory)
         plt.savefig(f'./results/{directory}/{filename}.png', bbox_inches='tight')
     plt.close(fig)
 
