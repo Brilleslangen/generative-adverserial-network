@@ -24,9 +24,6 @@ num_conv_layers = 3
 # Available datasets
 datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club']
 
-# Epochs between saving images
-display_frequency = 10
-
 
 def select_dataset(set_name):
     # Load data
@@ -62,7 +59,7 @@ def select_dataset(set_name):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-def run(ds_index, epochs, display_dataset=False):
+def run(ds_index, epochs, display_dataset=False, display_frequency=10):
     # Select dataset
     dataset_name = datasets[ds_index]
     dataloader, color_channels = select_dataset(dataset_name)
@@ -80,7 +77,7 @@ def run(ds_index, epochs, display_dataset=False):
     gan.train()
 
 
-# Queue of GAN training
-run(0, 20)
-run(1, 200)
-run(2, 200)
+# Queue of GAN trainings
+run(ds_index=0, epochs=20, display_frequency=1)
+run(ds_index=1, epochs=200, display_frequency=1)
+run(ds_index=2, epochs=200, display_frequency=1)
