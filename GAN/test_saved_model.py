@@ -34,7 +34,7 @@ dataset = ""
 if set_type == datasets[0]:
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                     transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-    dataset = torchvision.datasets.MNIST(root=".", train=True, download=True, transform=transform)
+    dataset = torchvision.datasets.MNIST(root="./datasets", train=True, download=True, transform=transform)
 
 elif set_type == datasets[1]:
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
