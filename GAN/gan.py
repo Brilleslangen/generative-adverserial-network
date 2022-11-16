@@ -27,15 +27,18 @@ def display_images(images, directory=None,  filename=None):
     if filename is None or directory is None:
         plt.show()
     else:
+        if not os.path.isdir('./results'):
+            os.mkdir('./results')
         directory = f'./results/{directory}'
         if not os.path.isdir(directory):
             os.mkdir(directory)
-        plt.savefig(f'./results/{directory}/{filename}.png', bbox_inches='tight')
+        plt.savefig(f'{directory}/{filename}.png', bbox_inches='tight')
     plt.close(fig)
 
 
 class Gan:
-    def __init__(self, generator, discriminator, dataloader, ds_name, batch_size=32, latent_space_size=100):
+    def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
+                 batch_size=32, latent_space_size=100):
         # Decide which device we want to run on
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
@@ -48,6 +51,7 @@ class Gan:
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
         self.ds_name = ds_name
+        self.display_frequency = display_frequency
 
     def init_train_conditions(self):
         # Hyper parameters
@@ -127,7 +131,7 @@ class Gan:
                   f' Discriminator loss: {disc_loss / episodes}')
 
             # Print image every tenth epoch
-            if (epoch + 1) % 10 == 0:
+            if (epoch + 1) % self.display_frequency == 0:
                 self.generator.eval()
                 images = self.generator(noise_seed)
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')

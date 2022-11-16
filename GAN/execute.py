@@ -24,6 +24,9 @@ num_conv_layers = 3
 # Available datasets
 datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club']
 
+# Epochs between saving images
+display_frequency = 10
+
 
 def select_dataset(set_name):
     # Load data
@@ -61,7 +64,7 @@ def select_dataset(set_name):
 
 
 # Select dataset
-dataset_name = datasets[0]
+dataset_name = datasets[1]
 dataloader, color_channels = select_dataset(dataset_name)
 
 
@@ -77,5 +80,5 @@ discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
 # Initiate Generative Adversarial Network
 # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
-gan = Gan(generator, discriminator, dataloader, dataset_name, batch_size, ls_size)
+gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size)
 gan.train()
