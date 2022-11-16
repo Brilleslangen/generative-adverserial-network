@@ -71,17 +71,20 @@ class Gan:
         real = 1
         fake = 0
 
-        print(f'episodes: {episodes}')
-
         return lr, episodes, loss, disc_optim, gen_optim, benchmark_seed, real, fake
 
     def train(self):
         # Initiate Training Conditions
         lr, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake = self.init_train_conditions()
 
+        print('-------------------------------\n'
+              f'Dataset: {self.ds_name}\n'
+              f'Epochs: {self.epochs}\n'
+              f'Episodes per epoch: {episodes}\n'
+              '-------------------------------')
+
         # Training
         for epoch in range(self.epochs):
-
             gen_loss = 0
             disc_loss = 0
 
@@ -137,8 +140,9 @@ class Gan:
                 if i % (math.ceil(episodes / 100)) == 0:
                     sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
 
-            print(f'\n - Generator loss: {gen_loss / episodes},'
-                  f' Discriminator loss: {disc_loss / episodes}')
+            print(f'\n - Generator loss: {gen_loss / episodes},' 
+                  f' Discriminator loss: {disc_loss / episodes}'
+                  '-------------------------------')
 
             # Save images
             if (epoch + 1) % self.display_frequency == 0:

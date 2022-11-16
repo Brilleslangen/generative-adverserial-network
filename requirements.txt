@@ -1,5 +1,6 @@
-matplotlib==3.4.3
-numpy==1.21.2
-torch==1.12.1
-torchvision==0.13.1
-traitlets==5.5.0
+matplotlib
+numpy
+torch
+torchvision
+traitlets
+opendatasets

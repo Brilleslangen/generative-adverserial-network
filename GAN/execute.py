@@ -62,22 +62,25 @@ def select_dataset(set_name):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-def run():
+def run(ds_index, epochs, display_dataset=False):
     # Select dataset
-    dataset_name = datasets[1]
+    dataset_name = datasets[ds_index]
     dataloader, color_channels = select_dataset(dataset_name)
 
-    # Set batch
-    real_batch = next(iter(dataloader))
-
-    # Display images
-    display_images(real_batch[0])
+    if display_dataset:
+        real_batch = next(iter(dataloader))
+        display_images(real_batch[0])
 
     # Initiate Discriminator and Discriminator
     generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
     discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
     # Initiate Generative Adversarial Network
-    # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
-    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size)
+    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size, epochs)
     gan.train()
+
+
+# Queue of GAN training
+run(0, 20)
+run(1, 200)
+run(2, 200)

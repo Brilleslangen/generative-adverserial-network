@@ -9,7 +9,6 @@ class Generator(nn.Module):
 
         # Initialize number of filters for each layer
         feature_map_sizes = [image_size * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
-        print(feature_map_sizes)
 
         # Initialize Latent Vector Space
         modules['LS-conv'] = nn.ConvTranspose2d(
