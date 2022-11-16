@@ -34,12 +34,12 @@ dataset = ""
 if set_type == datasets[0]:
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                     transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-    dataset = torchvision.datasets.MNIST(root=".", train=True, download=True, transform=transform)
+    dataset = torchvision.datasets.MNIST(root="./datasets", train=True, download=True, transform=transform)
 
 elif set_type == datasets[1]:
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                     transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
-    dataset = ImageFolder(root="./abstract-art/Abstract_gallery", transform=transform)
+    dataset = ImageFolder(root="./datasets/abstract-art-gallery/Abstract_gallery", transform=transform)
     num_img_chan = 3
 
 elif set_type == datasets[2]:
@@ -77,6 +77,10 @@ discriminator.eval()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 device = torch.device(device)
+
+generator.to(device)
+discriminator.to(device)
+
 images = generator(torch.randn(256, 100, 1, 1, device=device))
-display_images(images, f'./Results/abstract-art-epoch-{0 + 1}')
+display_images(images, 'trained', f'abstract-art-epoch-{1}')
 

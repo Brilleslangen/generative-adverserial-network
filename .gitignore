@@ -5,6 +5,8 @@ datasets/
 results/
 __pycache__/
 kaggle.json
+model.pt
+MNIST/
 
 
 
