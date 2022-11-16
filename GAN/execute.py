@@ -15,20 +15,20 @@ from generator import Generator
 ls_size = 100
 
 # Training batch size
-batch_size = 64
+batch_size = 32
 
 # Feature map size for generator and discriminator
-fm_size = 32
+fm_size = 64
 
 # Number of channels in image
-num_img_chan = 1
+num_img_chan = 3
 
 # Conv layers
 num_conv_layers = 3
 
 # Load data
 datasets = ['mnist', 'abstract-art']
-set_type = datasets[0]
+set_type = datasets[2]
 dataset = ""
 
 if set_type == datasets[0]:
@@ -39,7 +39,13 @@ if set_type == datasets[0]:
 elif set_type == datasets[1]:
     transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                     transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
-    dataset = ImageFolder(root="../abstract-art/Abstract_gallery", transform=transform)
+    dataset = ImageFolder(root="./abstract-art/Abstract_gallery", transform=transform)
+    num_img_chan = 3
+
+elif set_type == datasets[2]:
+    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+                                    transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
+    dataset = ImageFolder(root="./bayc", transform=transform)
     num_img_chan = 3
 
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

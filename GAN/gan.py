@@ -4,6 +4,7 @@ import torchvision.utils as tvutils
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import math
 
 
 def weights_init(model):
@@ -17,12 +18,15 @@ def weights_init(model):
         nn.init.constant_(model.bias.data, 0)
 
 
-def display_images(images):
+def display_images(images, filename=None):
     fig = plt.figure(figsize=(12, 12))
     plt.axis("off")
-    plt.title("Training Images")
+    plt.title(f'{filename}')
     plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    plt.show()
+    if filename == None:
+        plt.show()
+    else: 
+        plt.savefig(f'{filename}.png', bbox_inches='tight')
     plt.close(fig)
 
 
@@ -43,7 +47,7 @@ class Gan:
     def init_train_conditions(self):
         # Hyper parameters
         lr = 0.0002
-        epochs = 20
+        epochs = 2000
         episodes = len(self.dataloader)
 
         # Loss functions and optimizers
@@ -111,15 +115,16 @@ class Gan:
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
 
-                if i % (round(episodes / 100)) == 0:
+                if i % (math.ceil(episodes / 100)) == 0:
                     sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
 
             print(f'\n - Generator loss: {gen_loss / episodes},'
                   f' Discriminator loss: {disc_loss / episodes}')
 
             # Print image every other epoch
-            self.generator.eval()
-            images = self.generator(noise_seed)
-            display_images(images)
-            self.generator.train()                 
+            if (epoch + 1) % 10 == 0:
+                self.generator.eval()
+                images = self.generator(noise_seed)
+                display_images(images, f'./Results/abstract-art-epoch-{epoch + 1}')
+                self.generator.train()                 
 
