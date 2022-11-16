@@ -1,6 +1,8 @@
 .idea/
 datasets/
 GAN/datasets/
+results/
+GAN/results/
 kaggle.json
 
 

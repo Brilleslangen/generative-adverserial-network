@@ -25,14 +25,13 @@ num_conv_layers = 3
 datasets = ['mnist numbers', 'abstract art', 'bored apes yacht club']
 
 
-def select_dataset(dataset_index):
+def select_dataset(set_name):
     # Load data
     ds_root = "./datasets"
-    set_type = datasets[dataset_index]
     dataset = None
 
     # 1 channel datasets
-    if set_type == datasets[0]:
+    if set_name == datasets[0]:
         channels = 1
         transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                         transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -46,13 +45,13 @@ def select_dataset(dataset_index):
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
 
-    if set_type == datasets[1]:
+    if set_name == datasets[1]:
         directory = f'{ds_root}/abstract-art-gallery'
         if not os.path.isdir(directory):
             od.download("https://www.kaggle.com/datasets/bryanb/abstract-art-gallery", data_dir=ds_root)
         dataset = ImageFolder(root=f'{directory}/Abstract_gallery', transform=transform)
 
-    elif set_type == datasets[2]:
+    elif set_name == datasets[2]:
         directory = f'{ds_root}/bored-apes-yacht-club'
         if not os.path.isdir(directory):
             od.download("https://www.kaggle.com/datasets/stanleyjzheng/bored-apes-yacht-club", data_dir=ds_root)
@@ -62,7 +61,8 @@ def select_dataset(dataset_index):
 
 
 # Select dataset
-dataloader, color_channels = select_dataset(0)
+dataset_name = datasets[0]
+dataloader, color_channels = select_dataset(dataset_name)
 
 
 # Set batch
@@ -77,5 +77,5 @@ discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
 # Initiate Generative Adversarial Network
 # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
-gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
+gan = Gan(generator, discriminator, dataloader, dataset_name, batch_size, ls_size)
 gan.train()
