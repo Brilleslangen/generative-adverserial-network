@@ -1,6 +1,7 @@
 .idea/
-bayc/
-abstract-art/
+datasets/
+GAN/datasets/
+kaggle.json
 
 
 

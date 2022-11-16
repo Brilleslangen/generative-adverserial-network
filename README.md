@@ -1,3 +1,11 @@
+# Download Required Libraries
+
+To download the required libraries, install the file `requirements.txt`.
+
+```
+pip install -r requirements.txt
+```
+
 # Bored Apes Yacht Club
 
 This dataset is a full dump of all images from the famous Bored Apes Yacht Club (BAYC) NFT. 
