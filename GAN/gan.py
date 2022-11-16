@@ -140,8 +140,8 @@ class Gan:
                 if i % (math.ceil(episodes / 100)) == 0:
                     sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
 
-            print(f'\n - Generator loss: {gen_loss / episodes},' 
-                  f' Discriminator loss: {disc_loss / episodes}'
+            print(f'\nGenerator loss: {gen_loss / episodes}\n' 
+                  f'Discriminator loss: {disc_loss / episodes}\n'
                   '-------------------------------')
 
             # Save images
