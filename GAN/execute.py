@@ -39,7 +39,6 @@ def select_dataset(set_name):
         transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
                                         transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
         dataset = torchvision.datasets.MNIST(root=ds_root, train=True, download=True, transform=transform)
-
         return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
     # 3 channel-datasets
@@ -63,22 +62,22 @@ def select_dataset(set_name):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-# Select dataset
-dataset_name = datasets[1]
-dataloader, color_channels = select_dataset(dataset_name)
+def run():
+    # Select dataset
+    dataset_name = datasets[1]
+    dataloader, color_channels = select_dataset(dataset_name)
 
+    # Set batch
+    real_batch = next(iter(dataloader))
 
-# Set batch
-real_batch = next(iter(dataloader))
+    # Display images
+    display_images(real_batch[0])
 
-# Display images
-display_images(real_batch[0])
+    # Initiate Discriminator and Discriminator
+    generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
+    discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
-# Initiate Discriminator and Discriminator
-generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
-discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
-
-# Initiate Generative Adversarial Network
-# gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
-gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size)
-gan.train()
+    # Initiate Generative Adversarial Network
+    # gan = Gan(generator, discriminator, dataloader, batch_size, ls_size)
+    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size)
+    gan.train()
