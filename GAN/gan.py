@@ -27,18 +27,21 @@ def display_images(images, directory=None, filename=None):
     if filename is None or directory is None:
         plt.show()
     else:
-        directory = f'./results/{directory}'
-        if not os.path.isdir('./results'):
-            os.mkdir('./results')
-        if not os.path.isdir(directory):
-            os.mkdir(directory)
-        plt.savefig(f'{directory}/{filename}.png', bbox_inches='tight')
+        path = f'../results/{directory}'
+        initiate_directory('/results')
+        initiate_directory(path)
+        plt.savefig(f'{path}/{filename}.png', bbox_inches='tight')
     plt.close(fig)
+
+
+def initiate_directory(path):
+    if not os.path.isdir(path):
+        os.mkdir(path)
 
 
 class Gan:
     def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
-                 batch_size=32, latent_space_size=100, epochs=200):
+                 batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002):
         # Decide which device we want to run on
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
@@ -53,29 +56,51 @@ class Gan:
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
         self.epochs = epochs
+        self.disc_optim = torch.optim.Adam(self.discriminator.parameters(), lr=learning_rate,
+                                           betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
+        self.gen_optim = torch.optim.Adam(self.generator.parameters(), lr=learning_rate,
+                                          betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
 
     def init_train_conditions(self):
         # Hyper parameters
-        lr = 0.0002
         episodes = len(self.dataloader)
 
-        # Loss functions and optimizers
+        # Loss function
         loss = torch.nn.BCELoss().to(self.device)
-        disc_optim = torch.optim.Adam(self.discriminator.parameters(), lr=lr,
-                                      betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
-        gen_optim = torch.optim.Adam(self.generator.parameters(), lr=lr,
-                                     betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
 
         # Training variables
         benchmark_seed = torch.randn(256, 100, 1, 1, device=self.device)
         real = 1
         fake = 0
 
-        return lr, episodes, loss, disc_optim, gen_optim, benchmark_seed, real, fake
+        return episodes, loss, benchmark_seed, real, fake
+
+    def save_model(self, model_name):
+        path = '../models'
+        initiate_directory(path)
+
+        # Save model
+        filename = f'{model_name}-model.pt'
+
+        torch.save({
+            'discriminator_state': self.discriminator.state_dict(),
+            'generator_state': self.generator.state_dict(),
+            'disc_optim': self.disc_optim.state_dict(),
+            'gen_optim': self.gen_optim.state_dict(),
+        }, f'{path}/{filename}')
+
+    def load_model(self, model_name):
+        PATH = f'../models/{model_name}-model.pt'
+        checkpoint = torch.load(PATH)
+
+        self.generator.load_state_dict(checkpoint['generator_state'])
+        self.discriminator.load_state_dict(checkpoint['discriminator_state'])
+        self.disc_optim.load_state_dict(checkpoint['disc_optim'])
+        self.gen_optim.load_state_dict(checkpoint['gen_optim'])
 
     def train(self):
         # Initiate Training Conditions
-        lr, episodes, loss, disc_optim, gen_optim, noise_seed, real, fake = self.init_train_conditions()
+        episodes, loss, benchmark_seed, real, fake = self.init_train_conditions()
 
         print('-------------------------------\n'
               f'Dataset: {self.ds_name}\n'
@@ -113,7 +138,7 @@ class Gan:
 
                 # Calculate total discriminator loss
                 disc_batch_loss = error_real + error_fake
-                disc_optim.step()
+                self.disc_optim.step()
 
                 # Generate fake samples and calculate loss
                 self.generator.zero_grad()
@@ -122,31 +147,21 @@ class Gan:
                 gen_batch_loss = loss(pred_fake, real_labels)
                 gen_batch_loss.backward()
 
-                gen_optim.step()
+                self.gen_optim.step()
 
                 gen_loss += gen_batch_loss
                 disc_loss += disc_batch_loss
 
-                # Save model
-                PATH = "model.pt"
-
-                torch.save({
-                    'discriminator_state': self.discriminator.state_dict(),
-                    'generator_state': self.generator.state_dict(),
-                    'disc_optim': disc_optim.state_dict(),
-                    'gen_optim': gen_optim.state_dict(),
-                }, PATH)
-
                 if i % (math.ceil(episodes / 100)) == 0:
                     sys.stdout.write(f'\rEpoch {epoch + 1}: {((i + 1) * 100) // episodes}%')
 
-            print(f'\nGenerator loss: {gen_loss / episodes}\n' 
+            print(f'\nGenerator loss: {gen_loss / episodes}\n'
                   f'Discriminator loss: {disc_loss / episodes}\n'
                   '-------------------------------')
 
             # Save images
             if (epoch + 1) % self.display_frequency == 0:
                 self.generator.eval()
-                images = self.generator(noise_seed)
+                images = self.generator(benchmark_seed)
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
                 self.generator.train()

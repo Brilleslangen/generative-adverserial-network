@@ -27,7 +27,7 @@ datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club']
 
 def select_dataset(set_name):
     # Load data
-    ds_root = "./datasets"
+    ds_root = "../datasets"
     dataset = None
 
     # 1 channel datasets
