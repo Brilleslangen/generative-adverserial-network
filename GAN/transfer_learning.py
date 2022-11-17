@@ -79,18 +79,10 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10):
     # Initiate Discriminator and Discriminator
     generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
     discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
-    disc_optim = torch.optim.Adam(discriminator.parameters(), lr=1,
-                                      betas=(0.5, 0.999), weight_decay=0.0002 / 5)
-    gen_optim = torch.optim.Adam(generator.parameters(), lr=1,
-                                     betas=(0.5, 0.999), weight_decay=0.0002 / 5)
+    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size, epochs)
     
     # Initiate from trained models
-    checkpoint = torch.load("model.pt")
-    
-    generator.load_state_dict(checkpoint['generator_state'])
-    discriminator.load_state_dict(checkpoint['discriminator_state'])
-    disc_optim.load_state_dict(checkpoint['disc_optim'])
-    gen_optim.load_state_dict(checkpoint['gen_optim'])
+    gan.load_model("test")
     
     # Set generator to eval, and display image from loaded model
     generator.eval()
@@ -101,7 +93,6 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10):
     display_images(images, 'trained', f'abstract-art-epoch-{1}')
 
     # Initiate Generative Adversarial Network
-    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size, epochs)
     gan.train()
 
 

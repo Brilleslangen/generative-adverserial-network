@@ -21,6 +21,9 @@ fm_size = 64
 # Conv layers
 num_conv_layers = 3
 
+# Learning rate
+lr = 0.0002
+
 # Available datasets
 datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club', 'celeba-dataset']
 
@@ -61,12 +64,11 @@ def select_dataset(set_name):
         if not os.path.isdir(directory):
             od.download("https://www.kaggle.com/datasets/jessicali9530/celeba-dataset", data_dir=ds_root)
         dataset = ImageFolder(root=f'{directory}', transform=transform)
-            
 
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-def run(ds_index, epochs, display_dataset=False, display_frequency=10):
+def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=None):
     # Select dataset
     dataset_name = datasets[ds_index]
     dataloader, color_channels = select_dataset(dataset_name)
@@ -80,16 +82,13 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10):
     discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
 
     # Initiate Generative Adversarial Network
-    gan = Gan(generator, discriminator, dataloader, dataset_name, display_frequency, batch_size, ls_size, epochs)
+    gan = Gan(generator, discriminator, dataloader, dataset_name,
+              display_frequency, batch_size, ls_size, epochs, lr, tf_model)
     gan.train()
 
 
 # Queue of GAN trainings
-<<<<<<< HEAD
-run(ds_index=2, epochs=100, display_frequency=1)
-=======
 run(ds_index=0, epochs=20, display_frequency=1)
 run(ds_index=1, epochs=200, display_frequency=1)
 run(ds_index=2, epochs=200, display_frequency=1)
 run(ds_index=3, epochs=50, display_frequency=1)
->>>>>>> a28a813969b12c3ad25c4c987b169ef3ba544aef

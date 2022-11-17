@@ -19,7 +19,7 @@ def weights_init(model):
 
 class Gan:
     def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
-                 batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002):
+                 batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002, tf_model=None):
         # Decide which device we want to run on
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
@@ -38,6 +38,7 @@ class Gan:
                                            betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
         self.gen_optim = torch.optim.Adam(self.generator.parameters(), lr=learning_rate,
                                           betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
+        self.load_model(tf_model)
 
     def init_train_conditions(self):
         # Hyper parameters
