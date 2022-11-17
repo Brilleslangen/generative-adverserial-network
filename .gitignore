@@ -8,7 +8,7 @@ __pycache__/
 kaggle.json
 model.pt
 MNIST/
-
+models/
 
 
 

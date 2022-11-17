@@ -165,3 +165,13 @@ class Gan:
                 images = self.generator(benchmark_seed)
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
                 self.generator.train()
+
+        # Save model
+        PATH = f"{self.ds_name}-model.pt"
+
+        torch.save({
+            'discriminator_state': self.discriminator.state_dict(),
+            'generator_state': self.generator.state_dict(),
+            'disc_optim': disc_optim.state_dict(),
+            'gen_optim': gen_optim.state_dict(),
+        }, PATH)
