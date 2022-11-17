@@ -56,7 +56,7 @@ class Gan:
         return episodes, loss, benchmark_seed, real, fake
 
     def save_model(self, model_name):
-        path = '../models'
+        path = './models'
         initiate_directory(path)
 
         # Save model
@@ -70,7 +70,7 @@ class Gan:
         }, f'{path}/{filename}')
 
     def load_model(self, model_name):
-        PATH = f'../models/{model_name}-model.pt'
+        PATH = f'./models/{model_name}-model.pt'
         checkpoint = torch.load(PATH)
 
         self.generator.load_state_dict(checkpoint['generator_state'])
