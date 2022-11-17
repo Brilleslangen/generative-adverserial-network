@@ -78,6 +78,4 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10):
 
 
 # Queue of GAN trainings
-run(ds_index=0, epochs=20, display_frequency=1)
-run(ds_index=1, epochs=200, display_frequency=1)
-run(ds_index=2, epochs=200, display_frequency=1)
+run(ds_index=2, epochs=100, display_frequency=1)
