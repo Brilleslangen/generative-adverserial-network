@@ -1,5 +1,6 @@
 import opendatasets as od
 import torchvision
+import torch
 import os
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
@@ -29,7 +30,6 @@ datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club', 'celeba-da
 
 
 def select_dataset(set_name):
-    # Load data
     ds_root = "./datasets"
     dataset = None
 
@@ -58,7 +58,7 @@ def select_dataset(set_name):
         if not os.path.isdir(directory):
             od.download("https://www.kaggle.com/datasets/stanleyjzheng/bored-apes-yacht-club", data_dir=ds_root)
         dataset = ImageFolder(root=f'{directory}', transform=transform)
-        
+
     elif set_name == datasets[3]:
         directory = f'{ds_root}/celeba-dataset'
         if not os.path.isdir(directory):
@@ -85,6 +85,26 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=
     gan = Gan(generator, discriminator, dataloader, dataset_name,
               display_frequency, batch_size, ls_size, epochs, lr, tf_model)
     gan.train()
+
+
+def generate_images_from_model(ds_index, model_name):
+    # Select dataset
+    dataset_name = datasets[ds_index]
+    dataloader, color_channels = select_dataset(dataset_name)
+
+    # Initiate generator and load model
+    PATH = f'./models/{model_name}-model.pt'
+    checkpoint = torch.load(PATH)
+
+    generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
+    generator.load_state_dict(checkpoint['generator_state'])
+
+    # Print image
+    generator.eval()
+    seed = torch.randn(256, 100, 1, 1)
+    images = generator(seed)
+    display_images(images)
+    generator.train()
 
 
 # Queue of GAN trainings
