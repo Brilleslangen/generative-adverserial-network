@@ -38,7 +38,8 @@ class Gan:
                                            betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
         self.gen_optim = torch.optim.Adam(self.generator.parameters(), lr=learning_rate,
                                           betas=(0.5, 0.999), weight_decay=0.0002 / self.epochs)
-        self.load_model(tf_model)
+        if tf_model is not None:
+            self.load_model(tf_model)
 
     def init_train_conditions(self):
         # Hyper parameters
