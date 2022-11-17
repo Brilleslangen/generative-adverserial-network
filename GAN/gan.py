@@ -1,11 +1,9 @@
 import sys
-import numpy as np
-import torchvision.utils as tvutils
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 import math
-import os
+
+from helpers import display_images, initiate_directory
 
 
 def weights_init(model):
@@ -17,26 +15,6 @@ def weights_init(model):
     elif classname.find("BatchNorm") != -1:
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
-
-
-def display_images(images, directory=None, filename=None):
-    fig = plt.figure(figsize=(12, 12))
-    plt.axis("off")
-    plt.title(f'{filename}')
-    plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    if filename is None or directory is None:
-        plt.show()
-    else:
-        path = f'../results/{directory}'
-        initiate_directory('/results')
-        initiate_directory(path)
-        plt.savefig(f'{path}/{filename}.png', bbox_inches='tight')
-    plt.close(fig)
-
-
-def initiate_directory(path):
-    if not os.path.isdir(path):
-        os.mkdir(path)
 
 
 class Gan:
@@ -166,12 +144,5 @@ class Gan:
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
                 self.generator.train()
 
-        # Save model
-        PATH = f"{self.ds_name}-model.pt"
-
-        torch.save({
-            'discriminator_state': self.discriminator.state_dict(),
-            'generator_state': self.generator.state_dict(),
-            'disc_optim': disc_optim.state_dict(),
-            'gen_optim': gen_optim.state_dict(),
-        }, PATH)
+            # Save model
+            self.save_model(self.ds_name)
