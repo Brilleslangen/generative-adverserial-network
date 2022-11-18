@@ -13,13 +13,12 @@ class Generator(nn.Module):
 
         # Initialize Latent Vector Space
         self.modules['L0-conv'] = nn.Sequential(
-            nn.ConvTranspose2d(
-                in_channels=latent_space_size,
-                out_channels=feature_map_sizes[0],
-                kernel_size=4,
-                stride=1,
-                padding=0,
-                bias=False),
+            nn.ConvTranspose2d(in_channels=latent_space_size,
+                               out_channels=feature_map_sizes[0],
+                               kernel_size=4,
+                               stride=1,
+                               padding=0,
+                               bias=False),
             nn.BatchNorm2d(feature_map_sizes[0]),
             nn.ReLU(True))
 
@@ -27,38 +26,39 @@ class Generator(nn.Module):
         for i in range(len(feature_map_sizes) - 1):
             # print(f"in: {feature_map_sizes[i]}, out: {feature_map_sizes[i + 1]}") # Debugging
             self.modules[f'L{i + 1}-conv'] = nn.Sequential(
-                nn.ConvTranspose2d(
-                    in_channels=feature_map_sizes[i],
-                    out_channels=feature_map_sizes[i + 1],
-                    kernel_size=4,
-                    stride=2,
-                    padding=1,
-                    bias=False),
+                nn.ConvTranspose2d(in_channels=feature_map_sizes[i],
+                                   out_channels=feature_map_sizes[i + 1],
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   bias=False),
                 nn.BatchNorm2d(feature_map_sizes[i + 1]),
                 nn.ReLU(True))
 
+        # Render Output-layers
+        for i in range(len(feature_map_sizes)):
             # Generate output image
-            self.modules[f'Output-{i + 1}'] = nn.Sequential(
-                nn.ConvTranspose2d(
-                    in_channels=feature_map_sizes[i + 1],
-                    out_channels=num_image_chan,
-                    kernel_size=4,
-                    stride=2,
-                    padding=1,
-                    bias=False),
+            self.modules[f'Output-{i}'] = nn.Sequential(
+                nn.ConvTranspose2d(in_channels=feature_map_sizes[i],
+                                   out_channels=num_image_chan,
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   bias=False),
                 nn.Tanh())
 
         # Add modules to model
         self.model = nn.Sequential(self.modules)
 
     def forward(self, x):
-        output = []
+        outputs = []
 
         for i in range(self.num_conv_layers + 1):
             x = self.modules[f'L{i}-conv'](x)
+            o = self.modules[f'Output-{i}'](x)
+            outputs.append(o)
 
-            if i > 0:
-                o = self.modules[f'Output-{i}'](x)
-                output.append(o)
+        # for output in outputs:
+        #    print(len(output), len(output[0]), len(output[0][0]), len(output[0][0][0]))
 
-        return output
+        return outputs[-1]
