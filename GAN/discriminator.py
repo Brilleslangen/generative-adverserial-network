@@ -39,6 +39,7 @@ class Discriminator(nn.Module):
             nn.Sigmoid())
 
         self.model = nn.Sequential(modules)
+        print(self)
 
     def forward(self, input):
         return self.model(input)

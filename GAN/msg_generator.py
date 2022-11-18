@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from traitlets.config.application import OrderedDict
 
@@ -58,7 +59,4 @@ class Generator(nn.Module):
             o = self.modules[f'Output-{i}'](x)
             outputs.append(o)
 
-        # for output in outputs:
-        #    print(len(output), len(output[0]), len(output[0][0]), len(output[0][0][0]))
-
-        return outputs[-1]
+        return list(reversed(outputs))

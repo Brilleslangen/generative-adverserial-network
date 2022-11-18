@@ -7,8 +7,8 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
 from gan import Gan, display_images
-from discriminator import Discriminator
-from generator import Generator
+from msg_discriminator import Discriminator
+from msg_generator import Generator
 
 # Latent vector size
 ls_size = 100
@@ -87,7 +87,7 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=
     gan.train()
 
 
-def generate_images_from_model(ds_index, model_name):
+def display_images_from_model(ds_index, model_name):
     # Select dataset
     dataset_name = datasets[ds_index]
     dataloader, color_channels = select_dataset(dataset_name)
@@ -99,7 +99,7 @@ def generate_images_from_model(ds_index, model_name):
     generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
     generator.load_state_dict(checkpoint['generator_state'])
 
-    # Print image
+    # Print
     generator.eval()
     seed = torch.randn(256, 100, 1, 1)
     images = generator(seed)

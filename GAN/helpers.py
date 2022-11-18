@@ -21,7 +21,7 @@ def display_images(images, directory=None, filename=None):
         initiate_directory(path)
         plt.savefig(f'{path}/{filename}.png', bbox_inches='tight')
     plt.close(fig)
-    
+
 
 def initiate_directory(path):
     if not os.path.isdir(path):
