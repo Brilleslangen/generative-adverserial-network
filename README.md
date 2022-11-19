@@ -1,6 +1,6 @@
 # Deep Convolutional GAN
 This is a project in the course *IDATT2502 - Applied Machine Learning* at the Norwegian University of Science and Technology (NTNU) by:
-- Aleksander Brekk Røed
+- Aleksander Brekke Røed
 - Erlend Rønning
 - Nicolai Thorer Sivesind
 
