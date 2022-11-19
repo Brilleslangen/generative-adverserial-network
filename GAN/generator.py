@@ -1,17 +1,18 @@
+from collections import OrderedDict
+
 import torch.nn as nn
-from traitlets.config.application import OrderedDict
 
 
 class Generator(nn.Module):
-    def __init__(self, latent_space_size, image_size, num_image_chan, num_conv_layers):
+    def __init__(self, latent_space_size, conv_scalar, num_image_chan, num_conv_layers):
         super().__init__()
-        modules = OrderedDict()
+        layers = OrderedDict()
 
         # Initialize number of filters for each layer
-        feature_map_sizes = [image_size * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
+        feature_map_sizes = [conv_scalar * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
 
         # Initialize Latent Vector Space
-        modules['L0-conv'] = nn.Sequential(
+        layers['L0-conv'] = nn.Sequential(
             nn.ConvTranspose2d(in_channels=latent_space_size,
                                out_channels=feature_map_sizes[0],
                                kernel_size=4,
@@ -23,7 +24,7 @@ class Generator(nn.Module):
 
         # Apply Transposed Convolution for each Conv-module
         for i in range(len(feature_map_sizes) - 1):
-            modules[f'L{i+1}-conv'] = nn.Sequential(
+            layers[f'L{i + 1}-conv'] = nn.Sequential(
                 nn.ConvTranspose2d(in_channels=feature_map_sizes[i],
                                    out_channels=feature_map_sizes[i + 1],
                                    kernel_size=4,
@@ -34,7 +35,7 @@ class Generator(nn.Module):
                 nn.ReLU(True))
 
         # Generate output image
-        modules['Output'] = nn.Sequential(
+        layers['Output'] = nn.Sequential(
             nn.ConvTranspose2d(in_channels=feature_map_sizes[-1],
                                out_channels=num_image_chan,
                                kernel_size=4,
@@ -44,7 +45,7 @@ class Generator(nn.Module):
             nn.Tanh())
 
         # Add modules to model
-        self.model = nn.Sequential(modules)
+        self.model = nn.Sequential(layers)
 
     def forward(self, x):
         return self.model(x)

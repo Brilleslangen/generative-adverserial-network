@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
-from traitlets.config.application import OrderedDict
 
 
-class Discriminator(nn.Module):
+class MsgDiscriminator(nn.Module):
     def __init__(self, conv_scalar, channels, num_conv_layers):
         super().__init__()
         self.layers = nn.ModuleDict()
@@ -50,6 +49,5 @@ class Discriminator(nn.Module):
             x = torch.cat((inputs[i], x), dim=1)
             x = self.layers[f'L{i}-downsample'](x)
             x = self.layers[f'L{i}-conv'](x)
-        x = self.layers['evaluate'](x)
 
-        return x
+        return self.layers['evaluate'](x)

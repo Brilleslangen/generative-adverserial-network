@@ -1,11 +1,9 @@
-import torch
 import torch.nn as nn
-from traitlets.config.application import OrderedDict
 
 
-class Generator(nn.Module):
+class MsgGenerator(nn.Module):
     def __init__(self, latent_space_size, conv_scalar, num_image_chan, num_conv_layers):
-        super(Generator, self).__init__()
+        super().__init__()
         self.layers = nn.ModuleDict()
         self.num_conv_layers = num_conv_layers
 

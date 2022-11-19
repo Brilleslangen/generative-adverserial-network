@@ -7,8 +7,10 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
 from gan import Gan, display_images
-from msg_discriminator import Discriminator
-from msg_generator import Generator
+from generator import Generator
+from discriminator import Discriminator
+from msg_discriminator import MsgDiscriminator
+from msg_generator import MsgGenerator
 
 # Latent vector size
 ls_size = 100
@@ -16,8 +18,11 @@ ls_size = 100
 # Training batch size
 batch_size = 32
 
-# Feature map size for generator and discriminator
-fm_size = 64
+# Size of image (quadratic)
+image_size = 64
+
+# Scala for sizing feature maps for generator and discriminator layers
+conv_scalar = 16
 
 # Conv layers
 num_conv_layers = 3
@@ -36,14 +41,14 @@ def select_dataset(set_name):
     # 1 channel datasets
     if set_name == datasets[0]:
         channels = 1
-        transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+        transform = transforms.Compose([transforms.Resize(image_size), transforms.CenterCrop(image_size),
                                         transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
         dataset = torchvision.datasets.MNIST(root=ds_root, train=True, download=True, transform=transform)
         return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
     # 3 channel-datasets
     channels = 3
-    transform = transforms.Compose([transforms.Resize(fm_size), transforms.CenterCrop(fm_size),
+    transform = transforms.Compose([transforms.Resize(image_size), transforms.CenterCrop(image_size),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
 
@@ -68,7 +73,7 @@ def select_dataset(set_name):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=None):
+def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=None, msg=False):
     # Select dataset
     dataset_name = datasets[ds_index]
     dataloader, color_channels = select_dataset(dataset_name)
@@ -78,8 +83,12 @@ def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=
         display_images(real_batch[0])
 
     # Initiate Discriminator and Discriminator
-    generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
-    discriminator = Discriminator(fm_size, color_channels, num_conv_layers)
+    generator = Generator(ls_size, conv_scalar, color_channels, num_conv_layers)
+    discriminator = Discriminator(conv_scalar, color_channels, num_conv_layers)
+
+    if msg:
+        generator = MsgGenerator(ls_size, conv_scalar, color_channels, num_conv_layers)
+        discriminator = MsgDiscriminator(conv_scalar, color_channels, num_conv_layers)
 
     # Initiate Generative Adversarial Network
     gan = Gan(generator, discriminator, dataloader, dataset_name,
@@ -96,7 +105,7 @@ def display_images_from_model(ds_index, model_name):
     PATH = f'./models/{model_name}-model.pt'
     checkpoint = torch.load(PATH)
 
-    generator = Generator(ls_size, fm_size, color_channels, num_conv_layers)
+    generator = Generator(ls_size, conv_scalar, color_channels, num_conv_layers)
     generator.load_state_dict(checkpoint['generator_state'])
 
     # Print

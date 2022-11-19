@@ -6,6 +6,10 @@ import numpy as np
 
 from torch.nn.functional import avg_pool2d
 from helpers import display_images, initiate_directory
+from generator import Generator
+from discriminator import Discriminator
+from msg_generator import MsgGenerator
+from msg_discriminator import MsgDiscriminator
 
 
 def weights_init(model):
@@ -22,6 +26,11 @@ def weights_init(model):
 class Gan:
     def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
                  batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002, tf_model=None):
+        # Check same type of generator and discriminator
+        if (isinstance(generator, MsgGenerator) and not isinstance(discriminator, MsgDiscriminator)) \
+                or (isinstance(generator, Generator) and not isinstance(discriminator, Discriminator)):
+            raise TypeError(f'Generator and discriminator must be of same type: {type(generator)}, {type(discriminator)}')
+
         # Decide which device we want to run on
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
@@ -101,13 +110,14 @@ class Gan:
                 real_samples = batch[0].to(self.device)
                 sample_size = len(real_samples)
 
+                if isinstance(self.discriminator, MsgDiscriminator):
+                    real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, 4)]
+
                 # Create real and fake labels
                 real_labels = torch.full((sample_size,), real, dtype=torch.float, device=self.device)
                 fake_labels = torch.full((sample_size,), fake, dtype=torch.float, device=self.device)
 
                 # Discriminate real samples and calculate loss
-                real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, 4)]
-
                 pred_real = self.discriminator(real_samples).view(-1)
                 error_real = loss(pred_real, real_labels)
                 error_real.backward()
@@ -115,7 +125,11 @@ class Gan:
                 # Discriminate fake samples and calculate loss
                 latent_vector = torch.randn(sample_size, self.latent_space_size, 1, 1, device=self.device)
                 fake_samples = self.generator(latent_vector)
-                fake_samples = list(map(lambda x: x.detach(), fake_samples))
+
+                if isinstance(self.generator, MsgGenerator):
+                    fake_samples = list(map(lambda x: x.detach(), fake_samples))
+                else:
+                    fake_samples = fake_samples.detach()
 
                 pred_fake = self.discriminator(fake_samples).view(-1)
                 error_fake = loss(pred_fake, fake_labels)
@@ -149,6 +163,8 @@ class Gan:
             if (epoch + 1) % self.display_frequency == 0:
                 self.generator.eval()
                 images = self.generator(benchmark_seed)
+                if isinstance(self.generator, MsgGenerator):
+                    images = images[-1]
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
                 self.generator.train()
 
