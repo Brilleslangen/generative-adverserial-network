@@ -36,7 +36,7 @@ class Discriminator(nn.Module):
         # Final convolution layer with sigmoid
         self.layers['evaluate'] = nn.Sequential(
             nn.Conv2d(in_channels=fm_size * 2 ** num_conv_layers,
-                      out_channels=1,
+                      out_channels=channels,
                       kernel_size=4,
                       stride=1,
                       padding=0,
