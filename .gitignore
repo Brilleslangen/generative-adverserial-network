@@ -4,7 +4,8 @@ abstract-art/
 datasets/
 results/
 Results/
-__pycache__/
+__pycache__
+GAN/__pycache__
 kaggle.json
 model.pt
 MNIST/
