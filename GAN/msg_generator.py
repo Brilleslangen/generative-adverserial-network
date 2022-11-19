@@ -4,13 +4,13 @@ from traitlets.config.application import OrderedDict
 
 
 class Generator(nn.Module):
-    def __init__(self, latent_space_size, image_size, num_image_chan, num_conv_layers):
+    def __init__(self, latent_space_size, conv_scalar, num_image_chan, num_conv_layers):
         super(Generator, self).__init__()
         self.layers = nn.ModuleDict()
         self.num_conv_layers = num_conv_layers
 
         # Initialize number of filters for each layer
-        feature_map_sizes = [image_size * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
+        feature_map_sizes = [conv_scalar * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
 
         # Populate samples from Latent Vector
         self.layers['L0-conv'] = nn.Sequential(
