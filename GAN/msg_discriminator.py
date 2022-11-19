@@ -6,11 +6,11 @@ from traitlets.config.application import OrderedDict
 class Discriminator(nn.Module):
     def __init__(self, fm_size, channels, num_conv_layers):
         super().__init__()
-        self.modules = OrderedDict()
+        self.layers = nn.ModuleDict()
         self.num_conv_layers = num_conv_layers
 
         # Layer 1: Convolution with leaky ReLU
-        self.modules['L0-conv'] = nn.Sequential(
+        self.layers['L0-conv'] = nn.Sequential(
             nn.Conv2d(in_channels=channels,
                       out_channels=fm_size,
                       kernel_size=4,
@@ -21,7 +21,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         for i in range(1, num_conv_layers + 1):
-            self.modules[f'L{i}-conv'] = nn.Sequential(
+            self.layers[f'L{i}-conv'] = nn.Sequential(
                 nn.Conv2d(in_channels=fm_size * 2 ** (i - 1),
                           out_channels=fm_size * 2 ** i,
                           kernel_size=4,
@@ -30,11 +30,11 @@ class Discriminator(nn.Module):
                 nn.BatchNorm2d(fm_size * 2 ** i),
                 nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
-            self.modules[f'L{i}-upsample'] = nn.Conv2d(1, fm_size * 2 ** (i - 1), kernel_size=1)
-            self.modules[f'L{i}-downsample'] = nn.Conv2d(fm_size * 2 ** i, fm_size * 2 ** (i - 1), kernel_size=1)
+            self.layers[f'L{i}-upsample'] = nn.Conv2d(channels, fm_size * 2 ** (i - 1), kernel_size=1)
+            self.layers[f'L{i}-downsample'] = nn.Conv2d(fm_size * 2 ** i, fm_size * 2 ** (i - 1), kernel_size=1)
 
         # Final convolution layer with sigmoid
-        self.modules['evaluate'] = nn.Sequential(
+        self.layers['evaluate'] = nn.Sequential(
             nn.Conv2d(in_channels=fm_size * 2 ** num_conv_layers,
                       out_channels=1,
                       kernel_size=4,
@@ -43,16 +43,13 @@ class Discriminator(nn.Module):
                       bias=False),
             nn.Sigmoid())
 
-        self.model = nn.Sequential(self.modules)
-
-
     def forward(self, inputs):
-        x = self.modules[f'L0-conv'](inputs[0])
+        x = self.layers[f'L0-conv'](inputs[0])
         for i in range(1, self.num_conv_layers + 1):
-            inputs[i] = self.modules[f'L{i}-upsample'](inputs[i])
+            inputs[i] = self.layers[f'L{i}-upsample'](inputs[i])
             x = torch.cat((inputs[i], x), dim=1)
-            x = self.modules[f'L{i}-downsample'](x)
-            x = self.modules[f'L{i}-conv'](x)
-        x = self.modules['evaluate'](x)
+            x = self.layers[f'L{i}-downsample'](x)
+            x = self.layers[f'L{i}-conv'](x)
+        x = self.layers['evaluate'](x)
 
         return x

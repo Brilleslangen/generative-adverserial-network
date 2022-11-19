@@ -128,7 +128,6 @@ class Gan:
                 # Generate fake samples and calculate loss
                 self.generator.zero_grad()
                 fake_samples = self.generator(latent_vector)
-                fake_samples = list(map(lambda x: x.detach(), fake_samples))
                 pred_fake = self.discriminator(fake_samples).view(-1)
 
                 gen_batch_loss = loss(pred_fake, real_labels)
