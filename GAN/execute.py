@@ -15,7 +15,7 @@ from msg_generator import MsgGenerator
 
 # Available datasets
 # MNIST Numbers, Abstract Art, Bored Apes Yacht Club, Celebrity faces
-datasets = ['mnist', 'art', 'apes', 'celebs']
+datasets = ['mnist', 'abstract-art', 'apes', 'celebs']
 
 
 def select_dataset(set_name, image_size, batch_size):
@@ -67,7 +67,11 @@ def run(ds_index, epochs, image_size, conv_scalar, num_conv_layers=3, lr=0.0002,
 
     # Set generator output name
     if model_name is None:
-        model_name = f'{datasets[ds_index]}-img{image_size}-cs{conv_scalar}-ncl{num_conv_layers}-lr{lr}'
+        model_name = f'{datasets[ds_index]}'
+        if msg:
+            model_name += '-msg'
+
+        model_name += f'-img{image_size}-cs{conv_scalar}-ncl{num_conv_layers}'
 
     # Select dataset
     dataset_name = datasets[ds_index]
