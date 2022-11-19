@@ -2,7 +2,9 @@ import sys
 import torch
 import torch.nn as nn
 import math
+import numpy as np
 
+from torch.nn.functional import avg_pool2d
 from helpers import display_images, initiate_directory
 
 
@@ -104,6 +106,8 @@ class Gan:
                 fake_labels = torch.full((sample_size,), fake, dtype=torch.float, device=self.device)
 
                 # Discriminate real samples and calculate loss
+                real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, 4)]
+
                 pred_real = self.discriminator(real_samples).view(-1)
                 error_real = loss(pred_real, real_labels)
                 error_real.backward()
@@ -111,8 +115,9 @@ class Gan:
                 # Discriminate fake samples and calculate loss
                 latent_vector = torch.randn(sample_size, self.latent_space_size, 1, 1, device=self.device)
                 fake_samples = self.generator(latent_vector)
+                fake_samples = list(map(lambda x: x.detach(), fake_samples))
 
-                pred_fake = self.discriminator(fake_samples.detach()).view(-1)
+                pred_fake = self.discriminator(fake_samples).view(-1)
                 error_fake = loss(pred_fake, fake_labels)
                 error_fake.backward()
 
@@ -122,6 +127,7 @@ class Gan:
 
                 # Generate fake samples and calculate loss
                 self.generator.zero_grad()
+                fake_samples = self.generator(latent_vector)
                 pred_fake = self.discriminator(fake_samples).view(-1)
 
                 gen_batch_loss = loss(pred_fake, real_labels)
