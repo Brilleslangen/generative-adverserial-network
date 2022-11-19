@@ -24,7 +24,7 @@ def weights_init(model):
 
 
 class Gan:
-    def __init__(self, generator, discriminator, dataloader, ds_name, display_frequency,
+    def __init__(self, generator, discriminator, dataloader, ds_name, model_name, display_frequency,
                  batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002, tf_model=None):
         # Check same type of generator and discriminator
         if (isinstance(generator, MsgGenerator) and not isinstance(discriminator, MsgDiscriminator)) \
@@ -41,6 +41,7 @@ class Gan:
         self.discriminator = discriminator.apply(weights_init).to(device=self.device)
         self.dataloader = dataloader
         self.ds_name = ds_name
+        self.output_name = model_name
         self.display_frequency = display_frequency
         self.batch_size = batch_size
         self.latent_space_size = latent_space_size
@@ -111,7 +112,8 @@ class Gan:
                 sample_size = len(real_samples)
 
                 if isinstance(self.discriminator, MsgDiscriminator):
-                    real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, self.generator.num_conv_layers + 1)]
+                    real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i)))
+                                                     for i in range(1, self.generator.num_conv_layers + 1)]
 
                 # Create real and fake labels
                 real_labels = torch.full((sample_size,), real, dtype=torch.float, device=self.device)
@@ -165,8 +167,8 @@ class Gan:
                 images = self.generator(benchmark_seed)
                 if isinstance(self.generator, MsgGenerator):
                     images = images[0]
-                display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
+                display_images(images, self.ds_name, f'{self.output_name}-epoch-{epoch + 1}')
                 self.generator.train()
 
             # Save model
-            self.save_model(self.ds_name)
+            self.save_model(self.output_name)

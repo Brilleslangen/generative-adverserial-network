@@ -12,29 +12,13 @@ from discriminator import Discriminator
 from msg_discriminator import MsgDiscriminator
 from msg_generator import MsgGenerator
 
-# Latent vector size
-ls_size = 100
-
-# Training batch size
-batch_size = 32
-
-# Size of image (quadratic)
-image_size = 128
-
-# Scala for sizing feature maps for generator and discriminator layers
-conv_scalar = 64
-
-# Conv layers
-num_conv_layers = 4
-
-# Learning rate
-lr = 0.00005
 
 # Available datasets
-datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club', 'celeba-dataset']
+# MNIST Numbers, Abstract Art, Bored Apes Yacht Club, Celebrity faces
+datasets = ['mnist', 'art', 'apes', 'celebs']
 
 
-def select_dataset(set_name):
+def select_dataset(set_name, image_size, batch_size):
     ds_root = "./datasets"
     dataset = None
 
@@ -73,39 +57,50 @@ def select_dataset(set_name):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
 
-def run(ds_index, epochs, display_dataset=False, display_frequency=10, tf_model=None, msg=False):
+def run(ds_index, epochs, image_size, conv_scalar, num_conv_layers=3, lr=0.0002, model_name=None,
+        preview_dataset_images=False, display_frequency=1, tf_model=None, msg=False):
+    # Latent vector size
+    ls_size = 100
+
+    # Training batch size
+    batch_size = 32
+
+    # Set generator output name
+    if model_name is None:
+        model_name = f'{datasets[ds_index]}-img{image_size}-cs{conv_scalar}-ncl{num_conv_layers}-lr{lr}'
+
     # Select dataset
     dataset_name = datasets[ds_index]
-    dataloader, color_channels = select_dataset(dataset_name)
+    dataloader, color_channels = select_dataset(dataset_name, image_size, batch_size)
 
-    if display_dataset:
+    if preview_dataset_images:
         real_batch = next(iter(dataloader))
         display_images(real_batch[0])
 
     # Initiate Discriminator and Discriminator
-    generator = Generator(ls_size, conv_scalar, color_channels, num_conv_layers)
-    discriminator = Discriminator(conv_scalar, color_channels, num_conv_layers)
-
     if msg:
         generator = MsgGenerator(ls_size, conv_scalar, color_channels, num_conv_layers)
         discriminator = MsgDiscriminator(conv_scalar, color_channels, num_conv_layers)
+    else:
+        generator = Generator(ls_size, conv_scalar, color_channels, num_conv_layers)
+        discriminator = Discriminator(conv_scalar, color_channels, num_conv_layers)
 
     # Initiate Generative Adversarial Network
-    gan = Gan(generator, discriminator, dataloader, dataset_name,
+    gan = Gan(generator, discriminator, dataloader, dataset_name, model_name,
               display_frequency, batch_size, ls_size, epochs, lr, tf_model)
     gan.train()
 
 
-def display_images_from_model(ds_index, model_name):
+def display_images_from_model(ds_index, model_name, image_size=64):
     # Select dataset
     dataset_name = datasets[ds_index]
-    dataloader, color_channels = select_dataset(dataset_name)
+    dataloader, color_channels = select_dataset(dataset_name, image_size, 32)
 
     # Initiate generator and load model
     PATH = f'./models/{model_name}-model.pt'
     checkpoint = torch.load(PATH)
 
-    generator = Generator(ls_size, conv_scalar, color_channels, num_conv_layers)
+    generator = Generator(100, 64, color_channels, 3)
     generator.load_state_dict(checkpoint['generator_state'])
 
     # Print
@@ -117,4 +112,6 @@ def display_images_from_model(ds_index, model_name):
 
 
 # Queue of GAN trainings
+run(ds_index=1, epochs=200, image_size=32, conv_scalar=64,
+    num_conv_layers=2, msg=False)
 run(ds_index=1, epochs=200, display_frequency=1, msg=True)
