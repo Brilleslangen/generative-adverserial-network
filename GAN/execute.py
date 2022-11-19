@@ -19,16 +19,16 @@ ls_size = 100
 batch_size = 32
 
 # Size of image (quadratic)
-image_size = 64
+image_size = 128
 
 # Scala for sizing feature maps for generator and discriminator layers
-conv_scalar = 16
+conv_scalar = 64
 
 # Conv layers
-num_conv_layers = 3
+num_conv_layers = 4
 
 # Learning rate
-lr = 0.0002
+lr = 0.00005
 
 # Available datasets
 datasets = ['mnist-numbers', 'abstract-art', 'bored-apes-yacht-club', 'celeba-dataset']
@@ -117,7 +117,4 @@ def display_images_from_model(ds_index, model_name):
 
 
 # Queue of GAN trainings
-run(ds_index=0, epochs=20, display_frequency=1)
-run(ds_index=1, epochs=200, display_frequency=1)
-run(ds_index=2, epochs=200, display_frequency=1)
-run(ds_index=3, epochs=50, display_frequency=1)
+run(ds_index=1, epochs=200, display_frequency=1, msg=True)

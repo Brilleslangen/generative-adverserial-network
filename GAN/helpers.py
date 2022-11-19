@@ -12,7 +12,7 @@ def display_images(images, directory=None, filename=None):
     fig = plt.figure(figsize=(12, 12))
     plt.axis("off")
     plt.title(f'{filename}')
-    plt.imshow(np.transpose(tvutils.make_grid(images[0][:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
+    plt.imshow(np.transpose(tvutils.make_grid(images[:32], padding=2, normalize=True).cpu(), (1, 2, 0)))
     if filename is None or directory is None:
         plt.show()
     else:

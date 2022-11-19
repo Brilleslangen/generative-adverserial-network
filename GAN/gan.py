@@ -111,7 +111,7 @@ class Gan:
                 sample_size = len(real_samples)
 
                 if isinstance(self.discriminator, MsgDiscriminator):
-                    real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, 4)]
+                    real_samples = [real_samples] + [avg_pool2d(real_samples, int(np.power(2, i))) for i in range(1, self.generator.num_conv_layers + 1)]
 
                 # Create real and fake labels
                 real_labels = torch.full((sample_size,), real, dtype=torch.float, device=self.device)
@@ -164,7 +164,7 @@ class Gan:
                 self.generator.eval()
                 images = self.generator(benchmark_seed)
                 if isinstance(self.generator, MsgGenerator):
-                    images = images[-1]
+                    images = images[0]
                 display_images(images, self.ds_name, f'{self.ds_name}-epoch-{epoch + 1}')
                 self.generator.train()
 
