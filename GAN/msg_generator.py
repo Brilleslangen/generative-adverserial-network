@@ -10,7 +10,6 @@ class MsgGenerator(nn.Module):
         # Initialize number of filters for each layer
         feature_map_sizes = [conv_scalar * 2 ** (i + 1) for i in range(num_conv_layers, -1, -1)]
 
-
         # Populate samples from Latent Vector
         self.layers['L0-conv'] = nn.Sequential(
             nn.ConvTranspose2d(in_channels=latent_space_size,

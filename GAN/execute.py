@@ -116,4 +116,4 @@ def display_images_from_model(ds_index, model_name, image_size=64):
 
 
 # Queue of GAN trainings
-run(ds_index=1, epochs=200, image_size=32, conv_scalar=64, num_conv_layers=2, msg=False)
+run(ds_index=1, epochs=200, image_size=64, conv_scalar=64, num_conv_layers=3, msg=True)
