@@ -101,7 +101,7 @@ def display_images_from_model(ds_index, model_name, image_size=64):
     dataloader, color_channels = select_dataset(dataset_name, image_size, 32)
 
     # Initiate generator and load model
-    PATH = f'./models/{model_name}-model.pt'
+    PATH = f'./models/{model_name}'
     checkpoint = torch.load(PATH)
 
     generator = Generator(100, 64, color_channels, 3)
@@ -114,6 +114,11 @@ def display_images_from_model(ds_index, model_name, image_size=64):
     display_images(images)
     generator.train()
 
+# Displaying images from pre-trained models
+display_images_from_model(0, "pre-trained-mnist-model.pt")
+display_images_from_model(1, "pre-trained-abstract-art-model.pt")
+display_images_from_model(2, "pre-trained-apes-model.pt")
+display_images_from_model(3, "pre-trained-celebs-model.pt")
 
 # Queue of GAN trainings
 run(ds_index=1, epochs=200, image_size=32, conv_scalar=64, num_conv_layers=2, msg=False)
