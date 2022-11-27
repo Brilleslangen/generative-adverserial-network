@@ -19,6 +19,7 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(conv_scalar),
             nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
+        # For loop to create the desired amount of convolutional layers.
         for i in range(1, num_conv_layers + 1):
             layers[f'L{i}-conv'] = nn.Sequential(
                 nn.Conv2d(in_channels=conv_scalar * 2 ** (i - 1),

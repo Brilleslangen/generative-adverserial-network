@@ -11,7 +11,7 @@ from discriminator import Discriminator
 from msg_generator import MsgGenerator
 from msg_discriminator import MsgDiscriminator
 
-
+# Weight initialzied as recommended by the DCGAN paper.
 def weights_init(model):
     classname = model.__class__.__name__
 
@@ -22,7 +22,7 @@ def weights_init(model):
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
 
-
+# Class representing the GAN itself.
 class Gan:
     def __init__(self, generator, discriminator, dataloader, ds_name, model_name, display_frequency,
                  batch_size=32, latent_space_size=100, epochs=200, learning_rate=0.0002, tf_model=None):

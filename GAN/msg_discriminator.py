@@ -19,6 +19,7 @@ class MsgDiscriminator(nn.Module):
             nn.BatchNorm2d(conv_scalar),
             nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
+        # Apply desired amount of Convolutional layers.
         for i in range(1, num_conv_layers + 1):
             self.layers[f'L{i}-conv'] = nn.Sequential(
                 nn.Conv2d(in_channels=conv_scalar * 2 ** (i - 1),
@@ -32,7 +33,7 @@ class MsgDiscriminator(nn.Module):
             self.layers[f'L{i}-upsample'] = nn.Conv2d(channels, conv_scalar * 2 ** (i - 1), kernel_size=1)
             self.layers[f'L{i}-downsample'] = nn.Conv2d(conv_scalar * 2 ** i, conv_scalar * 2 ** (i - 1), kernel_size=1)
 
-        # Final convolution layer with sigmoid
+        # Final convolution layer with sigmoid activation function
         self.layers['evaluate'] = nn.Sequential(
             nn.Conv2d(in_channels=conv_scalar * 2 ** num_conv_layers,
                       out_channels=1,
@@ -42,6 +43,7 @@ class MsgDiscriminator(nn.Module):
                       bias=False),
             nn.Sigmoid())
 
+    # Inject gradients during discrimination.
     def forward(self, inputs):
         x = self.layers[f'L0-conv'](inputs[0])
         for i in range(1, self.num_conv_layers + 1):

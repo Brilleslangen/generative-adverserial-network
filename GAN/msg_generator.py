@@ -22,9 +22,8 @@ class MsgGenerator(nn.Module):
             nn.BatchNorm2d(feature_map_sizes[0]),
             nn.ReLU(True))
 
-        # Apply Transposed Convolution for each Conv-module
+        # Apply desired amount of Transposed Convolutional layers
         for i in range(len(feature_map_sizes) - 1):
-            # print(f"in: {feature_map_sizes[i]}, out: {feature_map_sizes[i + 1]}") # Debugging
             self.layers[f'L{i + 1}-conv'] = nn.Sequential(
                 nn.ConvTranspose2d(in_channels=feature_map_sizes[i],
                                    out_channels=feature_map_sizes[i + 1],
@@ -47,6 +46,7 @@ class MsgGenerator(nn.Module):
                                    bias=False),
                 nn.Tanh())
 
+    # Return the outputs from each layer
     def forward(self, x):
         outputs = []
 

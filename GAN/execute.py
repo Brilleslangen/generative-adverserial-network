@@ -14,7 +14,7 @@ from msg_generator import MsgGenerator
 
 
 # Available datasets
-# MNIST Numbers, Abstract Art, Bored Apes Yacht Club, Celebrity faces
+# MNIST Numbers, Abstract Art, Bored Ape Yacht Club, Celebrity faces
 datasets = ['mnist', 'abstract-art', 'apes', 'celebs']
 
 
@@ -22,7 +22,7 @@ def select_dataset(set_name, image_size, batch_size):
     ds_root = "./datasets"
     dataset = None
 
-    # 1 channel datasets
+    # 1 channel datasets (greyscale)
     if set_name == datasets[0]:
         channels = 1
         transform = transforms.Compose([transforms.Resize(image_size), transforms.CenterCrop(image_size),
@@ -30,7 +30,7 @@ def select_dataset(set_name, image_size, batch_size):
         dataset = torchvision.datasets.MNIST(root=ds_root, train=True, download=True, transform=transform)
         return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
-    # 3 channel-datasets
+    # 3 channel-datasets (RGB)
     channels = 3
     transform = transforms.Compose([transforms.Resize(image_size), transforms.CenterCrop(image_size),
                                     transforms.ToTensor(),
@@ -56,7 +56,7 @@ def select_dataset(set_name, image_size, batch_size):
 
     return DataLoader(dataset, batch_size=batch_size, shuffle=True), channels
 
-
+# Trains the network and saves the model
 def run(ds_index, epochs, image_size, conv_scalar, num_conv_layers=3, lr=0.0002, model_name=None,
         preview_dataset_images=False, display_frequency=1, tf_model=None, msg=False):
     # Latent vector size
