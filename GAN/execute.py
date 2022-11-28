@@ -102,7 +102,7 @@ def display_images_from_model(ds_index, model_name, image_size=64):
 
     # Initiate generator and load model
     PATH = f'./models/{model_name}'
-    checkpoint = torch.load(PATH)
+    checkpoint = torch.load(PATH, map_location=torch.device('cpu'))
 
     generator = Generator(100, 64, color_channels, 3)
     generator.load_state_dict(checkpoint['generator_state'])
@@ -111,7 +111,7 @@ def display_images_from_model(ds_index, model_name, image_size=64):
     generator.eval()
     seed = torch.randn(256, 100, 1, 1)
     images = generator(seed)
-    display_images(images)
+    display_images(images, filename=model_name)
     generator.train()
 
 # Displaying images from pre-trained models
@@ -121,4 +121,4 @@ display_images_from_model(2, "pre-trained-apes-model.pt")
 display_images_from_model(3, "pre-trained-celebs-model.pt")
 
 # Queue of GAN trainings
-run(ds_index=1, epochs=200, image_size=32, conv_scalar=64, num_conv_layers=2, msg=False)
+#run(ds_index=1, epochs=200, image_size=32, conv_scalar=64, num_conv_layers=2, msg=False)

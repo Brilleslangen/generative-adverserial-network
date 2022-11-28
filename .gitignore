@@ -1,14 +1,9 @@
 .idea/
-bayc/
-abstract-art/
 datasets/
 results/
-Results/
 __pycache__
 GAN/__pycache__
 kaggle.json
-model.pt
-MNIST/
 models/
 
 
